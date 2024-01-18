@@ -24,25 +24,36 @@ def start_bot(message):
 
 @bot.message_handler(commands=['help'])
 def help_info(message):
-    bot.send_message(message.chat.id, 'Бот может выполнить следующие функции: '
-                                      '\n1 - отправить случайное число от 0 до 1000 '
-                                      '\n2 - отправить актуальный курс доллара / евро с сайта ЦБ на сегодня '
-                                      '\n3 - отправить стикер :)')
+    bot.send_message(message.chat.id, "Бот может выполнить следующие функции: "
+                                      "\n1 - отправить случайное число от 0 до 1000 "
+                                      "\n2 - отправить актуальный курс доллара / евро "
+                                      "\nс сайта ЦБ на сегодня "
+                                      "\n3 - отправить мою ссылку на GitHub"
+                                      "\n4 - отправить стикер :)")
 
 
-@bot.message_handler(content_types=["text"])
+@bot.message_handler(content_types=['text'])
 def bot_message(message):
+    global data
     if message.chat.type == 'private':
         if message.text == 'Случайное число':
             bot.send_message(message.chat.id, 'Ваше число: ' + str(random.randint(0, 1000)))
         elif message.text == 'Курс $ и €':
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-            button1 = types.KeyboardButton('Курс $ -')
-            button2 = types.KeyboardButton('Курс € -')
+            button1 = types.KeyboardButton('Курс $')
+            button2 = types.KeyboardButton('Курс €')
             button_back = types.KeyboardButton('<- Назад')
             markup.add(button1, button2, button_back)
 
             bot.send_message(message.chat.id, 'Курс $ и €', reply_markup=markup)
+
+        elif message.text == 'Курс $':
+            data = requests.get('https://www.cbr-xml-daily.ru/daily_json.js').json()
+            bot.send_message(message.chat.id, data['Valute']['USD']['Value'])
+
+        elif message.text == 'Курс €':
+            data = requests.get('https://www.cbr-xml-daily.ru/daily_json.js').json()
+            bot.send_message(message.chat.id, data['Valute']['EUR']['Value'])
 
         elif message.text == 'Далее ->':
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -67,11 +78,14 @@ def bot_message(message):
 
         elif message.text == 'Функционал':
             bot.send_message(message.chat.id, 'Бот может выполнить следующие функции: '
-                                              '\n1 - отправить случайное число от 0 до 1000 '
-                                              '\n2 - отправить актуальный курс доллара / евро с сайта ЦБ на сегодня '
-                                              '\n3 - отправить стикер :)')
+                                              "\n1 - отправить случайное число от 0 до 1000 "
+                                              "\n2 - отправить актуальный курс доллара / евро "
+                                              "\nс сайта ЦБ на сегодня "
+                                              "\n3 - отправить мою ссылку на GitHub"
+                                              "\n4 - отправить стикер :)")
         elif message.text == 'О боте':
-            bot.send_message(message.chat.id, f'Это первый и экспериментальный бот :) \nЛюбой фидбек будет принят во внимание и учтен, ')
+            bot.send_message(message.chat.id, f'Это первый и экспериментальный бот :) '
+                                              '\nЛюбой фидбек будет принят во внимание и учтен, ')
 
         elif message.text == 'Стикер':
             sticker = telebot.types.InputFile('static/sticker.webp')
@@ -82,5 +96,6 @@ def bot_message(message):
             bot.send_message(message.chat.id, text, parse_mode='MarkdownV2')
 
 
-
 bot.polling(none_stop=True)
+
+
